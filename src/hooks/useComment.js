@@ -31,7 +31,7 @@ const useComment = (questionId) => {
     const previousTodos = queryClient.getQueryData(["questions", `/question/${questionId}`])
 
     // Optimistically update to the new value
-    queryClient.setQueryData(["questions", `/question/${questionId}`], old => [...old, newTodo])
+    queryClient.setQueryData(["questions", `/question/${questionId}`], (old) => [...old, newTodo])
 
     // Return a context object with the snapshotted value
     return { previousTodos }
