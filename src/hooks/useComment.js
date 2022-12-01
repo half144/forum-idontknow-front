@@ -22,9 +22,26 @@ const useComment = (questionId) => {
   };
 
   return useMutation(handleComment, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(["questions", `/question/${questionId}`]);
-    },
+    onMutate: async newTodo => {
+    // Cancel any outgoing refetches
+    // (so they don't overwrite our optimistic update)
+    await queryClient.cancelQueries({ queryKey: ["questions", `/question/${questionId}`] })
+
+    // Snapshot the previous value
+    const previousTodos = queryClient.getQueryData(["questions", `/question/${questionId}`])
+
+    // Optimistically update to the new value
+    queryClient.setQueryData(["questions", `/question/${questionId}`], old => [...old, newTodo])
+
+    // Return a context object with the snapshotted value
+    return { previousTodos }
+  },
+   onError: (err, newTodo, context) => {
+    queryClient.setQueryData(["questions", `/question/${questionId}`], context.previousTodos)
+  },
+   onSettled: () => {
+    queryClient.invalidateQueries({ queryKey: ["questions", `/question/${questionId}`] })
+  },
   });
 };
 
